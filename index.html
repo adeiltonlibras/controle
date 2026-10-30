@@ -3,19 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meu Controle Financeiro</title>
-<!-- Importando biblioteca de gráficos -->
+<title>Controle Financeiro Nuvem</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
   body { background: #0f172a; color: #e2e8f0; padding: 20px; min-height: 100vh; }
   .container { max-width: 1100px; margin: 0 auto; display: grid; gap: 20px; }
-  
-  /* Cabeçalho */
   header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
   h1 { color: #38bdf8; font-size: 1.8rem; }
+  .status-nuvem { font-size: 0.8rem; background: #10b98120; color: #10b981; padding: 5px 10px; border-radius: 20px; font-weight: bold; }
   
-  /* Cartões de Resumo */
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
   .card { background: #1e293b; padding: 20px; border-radius: 12px; border-left: 5px solid; }
   .card h3 { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
@@ -27,11 +24,9 @@
   .card.despesa .value { color: #ef4444; }
   .card.saldo .value { color: #f59e0b; }
 
-  /* Layout Principal (Formulário + Gráfico) */
   .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   @media (max-width: 800px) { .main-content { grid-template-columns: 1fr; } }
 
-  /* Formulário */
   .form-container { background: #1e293b; padding: 20px; border-radius: 12px; }
   .form-title { margin-bottom: 15px; font-size: 1.1rem; color: #cbd5e1; }
   form { display: flex; flex-direction: column; gap: 12px; }
@@ -45,13 +40,12 @@
     background: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; margin-top: 5px;
   }
   button:hover { background: #0ea5e9; }
+  button:disabled { background: #64748b; cursor: not-allowed; }
 
-  /* Gráfico */
   .chart-container { background: #1e293b; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;}
   .chart-container h3 { margin-bottom: 15px; color: #cbd5e1; align-self: flex-start;}
   .chart-wrapper { width: 100%; max-width: 300px; }
 
-  /* Tabela de Transações */
   .table-container { background: #1e293b; border-radius: 12px; overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; min-width: 600px; }
   th, td { padding: 15px; text-align: left; border-bottom: 1px solid #334155; }
@@ -59,7 +53,6 @@
   tr:last-child td { border-bottom: none; }
   tr:hover { background: #33415550; }
   
-  /* Badges e Botões de Ação */
   .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
   .badge.receita { background: #10b98120; color: #10b981; }
   .badge.despesa { background: #ef444420; color: #ef4444; }
@@ -67,7 +60,6 @@
   .btn-action { background: transparent; border: none; cursor: pointer; font-size: 1.2rem; padding: 5px; transition: 0.2s; }
   .btn-action:hover { transform: scale(1.2); }
 
-  /* Scrollbar bonita */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: #0f172a; }
   ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -78,9 +70,9 @@
   
   <header>
     <h1>💰 Controle Financeiro</h1>
+    <span class="status-nuvem" id="statusNuvem">☁️ Conectando...</span>
   </header>
 
-  <!-- Resumo -->
   <div class="cards">
     <div class="card receita">
       <h3>Receitas</h3>
@@ -96,7 +88,6 @@
     </div>
   </div>
 
-  <!-- Formulário e Gráfico -->
   <div class="main-content">
     <div class="form-container">
       <h3 class="form-title" id="formTitle">Nova Transação</h3>
@@ -139,7 +130,6 @@
     </div>
   </div>
 
-  <!-- Histórico -->
   <div class="table-container">
     <table>
       <thead>
@@ -158,10 +148,33 @@
 
 </div>
 
-<script>
-  // Estado da aplicação
-  let transacoes = JSON.parse(localStorage.getItem('transacoes_v2') || '[]');
+<!-- Importando os módulos do Firebase via CDN -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  // Suas chaves do Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyC_1Ly94lTcBA2y2m3Gx6wOimBKYoOTgdY",
+    authDomain: "financas-adeilton.firebaseapp.com",
+    projectId: "financas-adeilton",
+    storageBucket: "financas-adeilton.firebasestorage.app",
+    messagingSenderId: "951516511330",
+    appId: "1:951516511330:web:2b2ddf80bc7cc068f2253b",
+    measurementId: "G-3KWKWZQGDL"
+  };
+
+  // Inicializa o Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Variáveis Globais
+  let usuarioId = null;
+  let transacoes = [];
   let meuGrafico = null;
+  let unsubscribeSnapshot = null;
 
   // Elementos do DOM
   const form = document.getElementById('form');
@@ -170,13 +183,45 @@
   const btnSubmit = document.getElementById('btnSubmit');
   const btnCancel = document.getElementById('btnCancel');
   const inputEditId = document.getElementById('editId');
+  const statusNuvem = document.getElementById('statusNuvem');
 
   // Funções Utilitárias
-  function salvar() { localStorage.setItem('transacoes_v2', JSON.stringify(transacoes)); }
   function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-  function gerarId() { return Date.now().toString(); }
 
-  // Renderizar a Tabela e os Cartões
+  // --- AUTENTICAÇÃO E CONEXÃO ---
+  signInAnonymously(auth).then(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        usuarioId = user.uid;
+        statusNuvem.textContent = "☁️ Dados Sincronizados";
+        statusNuvem.style.background = "#10b98120";
+        statusNuvem.style.color = "#10b981";
+        carregarDados();
+      }
+    });
+  }).catch((error) => {
+    console.error("Erro na autenticação:", error);
+    statusNuvem.textContent = "❌ Erro de Conexão";
+    statusNuvem.style.background = "#ef444420";
+    statusNuvem.style.color = "#ef4444";
+  });
+
+  // --- CARREGAR DADOS EM TEMPO REAL ---
+  function carregarDados() {
+    // Cria uma referência para a coleção de transações DESTE usuário específico
+    const transacoesRef = collection(db, "usuarios", usuarioId, "transacoes");
+    
+    // onSnapshot escuta mudanças em tempo real
+    unsubscribeSnapshot = onSnapshot(transacoesRef, (snapshot) => {
+      transacoes = [];
+      snapshot.forEach((doc) => {
+        transacoes.push({ id: doc.id, ...doc.data() });
+      });
+      render();
+    });
+  }
+
+  // --- RENDERIZAÇÃO ---
   function render() {
     lista.innerHTML = '';
     transacoes.sort((a, b) => new Date(b.data) - new Date(a.data));
@@ -211,7 +256,6 @@
     atualizarGrafico();
   }
 
-  // Renderizar o Gráfico (Chart.js)
   function atualizarGrafico() {
     const despesas = transacoes.filter(t => t.tipo === 'despesa');
     const categorias = {};
@@ -227,7 +271,6 @@
     if (meuGrafico) meuGrafico.destroy();
 
     if (labels.length === 0) {
-      // Se não tiver despesas, mostra um gráfico cinza
       labels.push('Sem despesas');
       data.push(1);
     }
@@ -247,28 +290,27 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 20, font: { size: 12 } } }
-        },
+        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 20, font: { size: 12 } } } },
         cutout: '70%'
       }
     });
   }
 
-  // Ações
-  function remover(id) {
-    if (confirm('Tem certeza que deseja excluir esta transação?')) {
-      transacoes = transacoes.filter(t => t.id !== id);
-      salvar();
-      render();
+  // --- AÇÕES (CRIAR, EDITAR, EXCLUIR) ---
+  window.remover = async function(id) {
+    if (confirm('Tem certeza que deseja excluir esta transação da nuvem?')) {
+      try {
+        await deleteDoc(doc(db, "usuarios", usuarioId, "transacoes", id));
+      } catch (e) {
+        alert("Erro ao excluir: " + e.message);
+      }
     }
   }
 
-  function editar(id) {
+  window.editar = function(id) {
     const t = transacoes.find(t => t.id === id);
     if (!t) return;
 
-    // Preencher o formulário
     document.getElementById('descricao').value = t.descricao;
     document.getElementById('valor').value = t.valor;
     document.getElementById('tipo').value = t.tipo;
@@ -276,17 +318,15 @@
     document.getElementById('data').value = t.data;
     inputEditId.value = t.id;
 
-    // Mudar visual do form
     formTitle.textContent = '✏️ Editando Transação';
     btnSubmit.textContent = 'Salvar Alterações';
-    btnSubmit.style.background = '#f59e0b'; // Laranja para salvar
+    btnSubmit.style.background = '#f59e0b';
     btnCancel.style.display = 'block';
 
-    // Rolar para o topo
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function cancelarEdicao() {
+  window.cancelarEdicao = function() {
     form.reset();
     inputEditId.value = '';
     formTitle.textContent = 'Nova Transação';
@@ -296,12 +336,18 @@
     document.getElementById('data').value = new Date().toISOString().split('T')[0];
   }
 
-  // Submit do Formulário (Adicionar ou Salvar Edição)
-  form.addEventListener('submit', e => {
+  // Submissão do Formulário
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const novaTransacao = {
-      id: inputEditId.value || gerarId(),
+    if (!usuarioId) {
+      alert("Aguarde a conexão com a nuvem...");
+      return;
+    }
+
+    btnSubmit.disabled = true; // Evita cliques duplos
+
+    const dados = {
       descricao: document.getElementById('descricao').value,
       valor: parseFloat(document.getElementById('valor').value),
       tipo: document.getElementById('tipo').value,
@@ -309,25 +355,27 @@
       data: document.getElementById('data').value
     };
 
-    if (inputEditId.value) {
-      // Editando
-      const index = transacoes.findIndex(t => t.id === inputEditId.value);
-      transacoes[index] = novaTransacao;
-      cancelarEdicao();
-    } else {
-      // Adicionando
-      transacoes.push(novaTransacao);
-      form.reset();
-      document.getElementById('data').value = new Date().toISOString().split('T')[0];
+    try {
+      if (inputEditId.value) {
+        // Atualizar no Firestore
+        const docRef = doc(db, "usuarios", usuarioId, "transacoes", inputEditId.value);
+        await updateDoc(docRef, dados);
+        cancelarEdicao();
+      } else {
+        // Adicionar no Firestore
+        await addDoc(collection(db, "usuarios", usuarioId, "transacoes"), dados);
+        form.reset();
+        document.getElementById('data').value = new Date().toISOString().split('T')[0];
+      }
+    } catch (error) {
+      alert("Erro ao salvar: " + error.message);
+    } finally {
+      btnSubmit.disabled = false;
     }
-
-    salvar();
-    render();
   });
 
-  // Inicialização
+  // Inicialização básica
   document.getElementById('data').value = new Date().toISOString().split('T')[0];
-  render();
 </script>
 </body>
 </html>
