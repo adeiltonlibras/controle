@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { margin-bottom: 20px; color: #38bdf8; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+  .card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #38bdf8;
+  }
+  .card h3 { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; }
+  .card .value { font-size: 1.6rem; font-weight: bold; }
+  .card.receita { border-color: #22c55e; }
+  .card.despesa { border-color: #ef4444; }
+  .card.saldo { border-color: #f59e0b; }
+  .receita .value { color: #22c55e; }
+  .despesa .value { color: #ef4444; }
+  .saldo .value { color: #f59e0b; }
+  form {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    gap: 10px;
+    margin-bottom: 25px;
+  }
+  input, select, button {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+  }
+  button {
+    background: #38bdf8;
+    color: #0f172a;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: 0.2s;
+  }
+  button:hover { background: #0ea5e9; }
+  button.delete {
+    background: transparent;
+    color: #ef4444;
+    padding: 4px 8px;
+    font-size: 1rem;
+  }
+  table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; }
+  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+  th { background: #0f172a; color: #38bdf8; font-size: 0.85rem; text-transform: uppercase; }
+  tr:last-child td { border-bottom: none; }
+  .tipo-receita { color: #22c55e; font-weight: bold; }
+  .tipo-despesa { color: #ef4444; font-weight: bold; }
+  @media (max-width: 700px) {
+    form { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>💰 Controle</h1>
+  <div class="cards">
+    <div class="card receita"><h3>Receitas</h3><div class="value" id="totalReceita">R$ 0,00</div></div>
+    <div class="card despesa"><h3>Despesas</h3><div class="value" id="totalDespesa">R$ 0,00</div></div>
+    <div class="card saldo"><h3>Saldo</h3><div class="value" id="totalSaldo">R$ 0,00</div></div>
+  </div>
+  <form id="form">
+    <input type="text" id="descricao" placeholder="Descrição" required>
+    <input type="number" id="valor" placeholder="Valor" step="0.01" min="0" required>
+    <select id="tipo" required>
+      <option value="despesa">Despesa</option>
+      <option value="receita">Receita</option>
+    </select>
+    <input type="date" id="data" required>
+    <button type="submit">Adicionar</button>
+  </form>
+  <table>
+    <thead>
+      <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th></th></tr>
+    </thead>
+    <tbody id="lista"></tbody>
+  </table>
+</div>
+<script>
+  const form = document.getElementById('form');
+  const lista = document.getElementById('lista');
+  let transacoes = JSON.parse(localStorage.getItem('transacoes') || '[]');
+  function salvar() { localStorage.setItem('transacoes', JSON.stringify(transacoes)); }
+  function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+  function render() {
+    lista.innerHTML = '';
+    transacoes.sort((a, b) => b.data.localeCompare(a.data));
+    let receita = 0, despesa = 0;
+    transacoes.forEach((t, i) => {
+      if (t.tipo === 'receita') receita += t.valor; else despesa += t.valor;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${new Date(t.data + 'T00:00').toLocaleDateString('pt-BR')}</td>
+        <td>${t.descricao}</td>
+        <td class="tipo-${t.tipo}">${t.tipo === 'receita' ? '↑ Receita' : '↓ Despesa'}</td>
+        <td class="${t.tipo === 'receita' ? 'tipo-receita' : 'tipo-despesa'}">${formatarMoeda(t.valor)}</td>
+        <td><button class="delete" onclick="remover(${i})">🗑️</button></td>
+      `;
+      lista.appendChild(tr);
+    });
+    document.getElementById('totalReceita').textContent = formatarMoeda(receita);
+    document.getElementById('totalDespesa').textContent = formatarMoeda(despesa);
+    document.getElementById('totalSaldo').textContent = formatarMoeda(receita - despesa);
+  }
+  function remover(index) {
+    if (confirm('Excluir esta transação?')) {
+      transacoes.splice(index, 1);
+      salvar();
+      render();
+    }
+  }
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    transacoes.push({
+      descricao: document.getElementById('descricao').value,
+      valor: parseFloat(document.getElementById('valor').value),
+      tipo: document.getElementById('tipo').value,
+      data: document.getElementById('data').value
+    });
+    salvar();
+    render();
+    form.reset();
+    document.getElementById('data').value = new Date().toISOString().split('T')[0];
+  });
+  document.getElementById('data').value = new Date().toISOString().split('T')[0];
+  render();
+</script>
+</body>
+</html>
