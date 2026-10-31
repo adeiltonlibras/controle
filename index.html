@@ -3,222 +3,367 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Controle Financeiro Nuvem</title>
+<title>FinanPro | Gestão Avançada</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-  body { background: #0f172a; color: #e2e8f0; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; }
-  
-  /* TELA DE LOGIN */
-  #telaLogin { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh; }
-  .login-box { background: #1e293b; padding: 40px; border-radius: 12px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-  .login-box h2 { text-align: center; color: #38bdf8; margin-bottom: 10px; }
-  .login-box input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #e2e8f0; }
-  .login-box button { background: #38bdf8; color: #0f172a; font-weight: bold; padding: 12px; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; }
-  .login-box button:hover { background: #0ea5e9; }
-  .btn-link { background: transparent !important; color: #94a3b8 !important; font-weight: normal !important; margin-top: 5px !important; font-size: 0.9rem; cursor: pointer; text-decoration: underline; }
-  
-  /* SITE */
-  #siteContainer { display: none; max-width: 1200px; margin: 0 auto; width: 100%; grid-gap: 20px; display: none; flex-direction: column; }
-  
-  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 15px;}
-  h1 { color: #38bdf8; font-size: 1.8rem; }
-  .header-controls { display: flex; align-items: center; gap: 15px; flex-wrap: wrap;}
-  
-  /* Filtro de Mês */
-  .filtro-mes { background: #1e293b; padding: 8px 15px; border-radius: 8px; border: 1px solid #334155; color: #38bdf8; font-weight: bold; cursor: pointer; }
-  .filtro-mes:focus { outline: none; border-color: #38bdf8; }
+  :root {
+    --bg-base: #0f172a;
+    --bg-surface: rgba(30, 41, 59, 0.7);
+    --bg-surface-hover: rgba(51, 65, 85, 0.8);
+    --primary: #38bdf8;
+    --primary-hover: #0ea5e9;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --purple: #8b5cf6;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: rgba(255, 255, 255, 0.1);
+  }
 
-  .user-info { display: flex; align-items: center; gap: 15px; font-size: 0.9rem; }
-  .status-nuvem { background: #10b98120; color: #10b981; padding: 5px 10px; border-radius: 20px; font-weight: bold; }
-  .btn-sair { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
   
-  /* Cartões Resumo */
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-  .card { background: #1e293b; padding: 20px; border-radius: 12px; border-left: 5px solid; }
-  .card h3 { font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
-  .card .value { font-size: 1.5rem; font-weight: bold; }
-  .card.receita { border-color: #10b981; }
-  .card.despesa { border-color: #ef4444; }
-  .card.saldo { border-color: #f59e0b; }
-  .card.pendente { border-color: #8b5cf6; } /* Roxo para pendentes */
-  .card.receita .value { color: #10b981; }
-  .card.despesa .value { color: #ef4444; }
-  .card.saldo .value { color: #f59e0b; }
-  .card.pendente .value { color: #8b5cf6; }
+  body { 
+    background-color: var(--bg-base);
+    background-image: radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08), transparent 25%), 
+                      radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+    color: var(--text-main); min-height: 100vh; display: flex; overflow-x: hidden;
+  }
 
-  .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 800px) { .main-content { grid-template-columns: 1fr; } }
+  /* LOGIN */
+  #telaLogin { position: fixed; inset: 0; background: var(--bg-base); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;}
+  .login-box { background: var(--bg-surface); backdrop-filter: blur(16px); padding: 40px; border-radius: 24px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);}
+  .login-box h2 { text-align: center; color: var(--text-main); font-weight: 700; font-size: 1.8rem; margin-bottom: 10px;}
+  .login-box h2 span { color: var(--primary); }
+  .input-wrapper { position: relative; width: 100%; }
+  .input-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.2rem;}
+  .login-box input { width: 100%; padding: 15px 15px 15px 45px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.6); color: white; font-size: 1rem; transition: 0.3s;}
+  .login-box input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
+  .login-box button { background: var(--primary); color: #0f172a; font-weight: 700; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-size: 1rem; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px;}
+  .login-box button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 20px -10px var(--primary);}
+  .btn-link { background: transparent !important; color: var(--text-muted) !important; font-weight: 500 !important; font-size: 0.9rem !important; margin-top: 10px; cursor: pointer; box-shadow: none !important;}
+  .btn-link:hover { color: var(--primary) !important; transform: none !important;}
 
-  /* Formulário */
-  .form-container { background: #1e293b; padding: 20px; border-radius: 12px; }
-  .form-title { margin-bottom: 15px; font-size: 1.1rem; color: #cbd5e1; }
-  form { display: flex; flex-direction: column; gap: 12px; }
-  .input-group { display: flex; gap: 10px; }
-  .input-group > * { flex: 1; }
-  input, select { padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #e2e8f0; font-size: 0.95rem; width: 100%; }
-  input:focus, select:focus { outline: none; border-color: #38bdf8; }
+  /* SIDEBAR */
+  .sidebar { width: 260px; background: var(--bg-surface); backdrop-filter: blur(20px); border-right: 1px solid var(--border); padding: 30px 20px; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;}
+  .logo { font-size: 1.5rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; margin-bottom: 40px; padding-left: 10px;}
+  .logo i { color: var(--primary); font-size: 2rem;}
+  .nav-item { display: flex; align-items: center; gap: 15px; padding: 14px 20px; color: var(--text-muted); text-decoration: none; border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: 0.3s; font-weight: 500;}
+  .nav-item:hover, .nav-item.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
+  .nav-item i { font-size: 1.3rem; }
+  .user-profile { margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 15px; background: rgba(15, 23, 42, 0.5); border-radius: 12px; border: 1px solid var(--border);}
+  .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;}
+  .user-info { flex: 1; overflow: hidden;}
+  .user-info p { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .btn-logout { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 1.2rem; transition: 0.2s; }
+  .btn-logout:hover { transform: scale(1.1); }
+
+  /* CONTEÚDO PRINCIPAL */
+  #siteContainer { display: none; margin-left: 260px; width: calc(100% - 260px); padding: 30px 40px; flex-direction: column; gap: 25px; }
   
-  .btn-add { background: #38bdf8; color: #0f172a; font-weight: bold; padding: 12px; border-radius: 8px; cursor: pointer; border: none; transition: 0.2s; margin-top: 5px; }
-  .btn-add:hover { background: #0ea5e9; }
-  .btn-add:disabled { background: #64748b; cursor: not-allowed; }
+  header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;}
+  .page-title h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 5px;}
+  .page-title p { color: var(--text-muted); font-size: 0.95rem;}
+  .header-actions { display: flex; gap: 15px; align-items: center; }
+  
+  .filtro-mes { background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-main); padding: 12px 20px; border-radius: 12px; font-weight: 500; font-size: 1rem; cursor: pointer; outline: none; transition: 0.2s;}
+  .filtro-mes:focus { border-color: var(--primary); }
 
-  /* Gráfico */
-  .chart-container { background: #1e293b; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;}
-  .chart-container h3 { margin-bottom: 15px; color: #cbd5e1; align-self: flex-start;}
-  .chart-wrapper { width: 100%; max-width: 250px; }
+  /* CARDS RESUMO */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .card { background: var(--bg-surface); backdrop-filter: blur(10px); padding: 24px; border-radius: 20px; border: 1px solid var(--border); position: relative; overflow: hidden; transition: 0.3s;}
+  .card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.2);}
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;}
+  .card-header h3 { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
+  .card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;}
+  .card .value { font-size: 2rem; font-weight: 700; }
+  
+  .card.receita .card-icon { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+  .card.despesa .card-icon { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+  .card.saldo .card-icon { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+  .card.pendente .card-icon { background: rgba(139, 92, 246, 0.1); color: var(--purple); }
+  
+  .card.receita .value { color: var(--success); }
+  .card.despesa .value { color: var(--danger); }
+  .card.saldo .value { color: var(--warning); }
+  .card.pendente .value { color: var(--purple); }
 
-  /* Tabela */
-  .table-container { background: #1e293b; border-radius: 12px; overflow-x: auto; margin-bottom: 20px;}
-  table { width: 100%; border-collapse: collapse; min-width: 800px; }
-  th, td { padding: 15px; text-align: left; border-bottom: 1px solid #334155; font-size: 0.9rem;}
-  th { background: #0f172a; color: #38bdf8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  /* GRID CENTRAL */
+  .middle-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+  @media (max-width: 1100px) { .middle-grid { grid-template-columns: 1fr; } }
+
+  /* FORMULÁRIO */
+  .form-container { background: var(--bg-surface); backdrop-filter: blur(10px); padding: 25px; border-radius: 20px; border: 1px solid var(--border); }
+  .form-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;}
+  .form-title i { color: var(--primary); }
+  form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+  .form-group { display: flex; flex-direction: column; gap: 8px;}
+  .form-group.full { grid-column: span 2; }
+  label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500;}
+  input, select { padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.6); color: var(--text-main); font-size: 0.95rem; transition: 0.2s; width: 100%;}
+  input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1); }
+  
+  .btn-add { grid-column: span 2; background: linear-gradient(135deg, var(--primary), #3b82f6); color: #0f172a; font-weight: 700; padding: 16px; border-radius: 12px; cursor: pointer; border: none; transition: 0.3s; font-size: 1rem; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 8px;}
+  .btn-add:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -10px var(--primary); }
+  .btn-add:disabled { opacity: 0.7; cursor: not-allowed; transform: none;}
+  .btn-cancel { grid-column: span 2; background: rgba(239, 68, 68, 0.1); color: var(--danger); font-weight: 600; padding: 14px; border-radius: 12px; cursor: pointer; border: 1px solid rgba(239, 68, 68, 0.3); transition: 0.2s; display: none; margin-top: 10px;}
+  .btn-cancel:hover { background: rgba(239, 68, 68, 0.2); }
+
+  /* WIDGETS LATERAIS */
+  .side-widgets { display: flex; flex-direction: column; gap: 25px; }
+  .widget { background: var(--bg-surface); backdrop-filter: blur(10px); padding: 25px; border-radius: 20px; border: 1px solid var(--border); }
+  .widget h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;}
+  .chart-wrapper { width: 100%; height: 220px; position: relative; }
+  
+  /* SALDO CONTAS */
+  .account-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.95rem;}
+  .account-item:last-child { border-bottom: none; padding-bottom: 0;}
+  .account-name { display: flex; align-items: center; gap: 8px; color: var(--text-muted);}
+  .account-value { font-weight: 600; color: var(--text-main);}
+
+  /* TABELA */
+  .table-section { background: var(--bg-surface); backdrop-filter: blur(10px); border-radius: 20px; border: 1px solid var(--border); overflow: hidden;}
+  .table-header { padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 15px;}
+  
+  .tabs { display: flex; gap: 10px; background: rgba(15, 23, 42, 0.5); padding: 5px; border-radius: 10px;}
+  .tab { padding: 8px 16px; border-radius: 8px; cursor: pointer; color: var(--text-muted); font-weight: 500; font-size: 0.9rem; transition: 0.3s;}
+  .tab.active { background: var(--bg-surface-hover); color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
+
+  .table-actions { display: flex; gap: 10px;}
+  .search-wrapper { position: relative; }
+  .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+  .search-box { padding: 10px 15px 10px 40px; border-radius: 10px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.5); color: white; font-size: 0.9rem;}
+  
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 16px 25px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem;}
+  th { background: rgba(15, 23, 42, 0.3); color: var(--text-muted); font-size: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
   tr:last-child td { border-bottom: none; }
-  tr:hover { background: #33415550; }
+  tr { transition: background 0.2s;}
+  tr:hover { background: rgba(255,255,255,0.02); }
   
-  .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
-  .badge.receita { background: #10b98120; color: #10b981; }
-  .badge.despesa { background: #ef444420; color: #ef4444; }
-  .badge.pago { background: #38bdf820; color: #38bdf8; }
-  .badge.pendente { background: #8b5cf620; color: #8b5cf6; }
+  .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;}
+  .badge.receita { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+  .badge.despesa { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+  .badge.operacao { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
+  
+  .actions { display: flex; gap: 8px; }
+  .btn-action { background: rgba(255,255,255,0.05); border: 1px solid transparent; cursor: pointer; font-size: 1.1rem; padding: 8px; border-radius: 8px; transition: 0.2s; color: var(--text-muted);}
+  .btn-action:hover { background: rgba(255,255,255,0.1); color: var(--text-main); border-color: var(--border);}
+  .btn-action.delete:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
 
-  .actions { display: flex; gap: 10px; }
-  .btn-action { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 5px; transition: 0.2s; }
-  .btn-action:hover { transform: scale(1.2); }
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    #siteContainer { margin-left: 0; width: 100%; padding: 20px 15px; }
+    form { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: span 1; }
+    .btn-add, .btn-cancel { grid-column: span 1; }
+    .table-container { overflow-x: auto; }
+  }
+
+  /* TOAST */
+  #toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
+  .toast { background: var(--bg-surface); backdrop-filter: blur(10px); color: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-left: 4px solid var(--primary); font-weight: 500; animation: slideIn 0.3s ease-out;}
+  .toast.success { border-left-color: var(--success); }
+  .toast.error { border-left-color: var(--danger); }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 </style>
 </head>
 <body>
 
-<!-- TELA DE LOGIN -->
+<div id="toast-container"></div>
+
+<!-- LOGIN -->
 <div id="telaLogin">
   <div class="login-box">
-    <h2>💰 Controle Financeiro</h2>
-    <input type="email" id="email" placeholder="Seu e-mail" required>
-    <input type="password" id="senha" placeholder="Sua senha (min. 6 caracteres)" required>
-    <button onclick="fazerLogin()" id="btnLogin">Entrar</button>
-    <button class="btn-link" onclick="fazerCadastro()" id="btnCadastro">Não tem conta? Criar uma agora.</button>
+    <h2>Finan<span>Pro</span></h2>
+    <div class="input-wrapper">
+      <i class="ph ph-envelope-simple"></i>
+      <input type="email" id="email" placeholder="Seu e-mail" required>
+    </div>
+    <div class="input-wrapper">
+      <i class="ph ph-lock-key"></i>
+      <input type="password" id="senha" placeholder="Sua senha" required>
+    </div>
+    <button onclick="fazerLogin()"><i class="ph ph-sign-in"></i> Entrar no Sistema</button>
+    <button class="btn-link" onclick="fazerCadastro()">Não tem conta? Criar uma agora.</button>
   </div>
 </div>
 
-<!-- SITE PRINCIPAL -->
-<div id="siteContainer" class="container">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo"><i class="ph-fill ph-wallet"></i> FinanPro</div>
+  <a class="nav-item active"><i class="ph ph-squares-four"></i> Dashboard</a>
+  <a class="nav-item"><i class="ph ph-receipt"></i> Extrato</a>
+  <a class="nav-item"><i class="ph ph-credit-card"></i> Cartões</a>
+  
+  <div class="user-profile">
+    <div class="user-avatar" id="avatarLetra">A</div>
+    <div class="user-info">
+      <p id="emailUsuario" style="font-weight: 600; color: var(--text-main);">Usuário</p>
+      <p style="color: var(--text-muted); font-size: 0.75rem;">Conta Premium</p>
+    </div>
+    <button class="btn-logout" onclick="fazerLogout()" title="Sair"><i class="ph ph-sign-out"></i></button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="siteContainer">
   <header>
-    <h1>💰 Controle Financeiro</h1>
-    <div class="header-controls">
+    <div class="page-title">
+      <h1>Fluxo de Caixa</h1>
+      <p>Gerencie suas contas, cartões e operações</p>
+    </div>
+    <div class="header-actions">
       <input type="month" id="filtroMes" class="filtro-mes" onchange="render()">
-      <span id="emailUsuario" style="color:#94a3b8; font-size: 0.9rem;"></span>
-      <button class="btn-sair" onclick="fazerLogout()">Sair</button>
     </div>
   </header>
 
-  <!-- Cartões Resumo -->
+  <!-- CARDS -->
   <div class="cards">
     <div class="card receita">
-      <h3>Receitas Recebidas</h3>
+      <div class="card-header">
+        <h3>Receitas do Mês</h3>
+        <div class="card-icon"><i class="ph ph-arrow-down-left"></i></div>
+      </div>
       <div class="value" id="totalReceita">R$ 0,00</div>
     </div>
     <div class="card despesa">
-      <h3>Despesas Pagas</h3>
+      <div class="card-header">
+        <h3>Despesas do Mês</h3>
+        <div class="card-icon"><i class="ph ph-arrow-up-right"></i></div>
+      </div>
       <div class="value" id="totalDespesa">R$ 0,00</div>
     </div>
     <div class="card saldo">
-      <h3>Saldo em Conta</h3>
+      <div class="card-header">
+        <h3>Saldo em Contas</h3>
+        <div class="card-icon"><i class="ph ph-currency-circle-dollar"></i></div>
+      </div>
       <div class="value" id="totalSaldo">R$ 0,00</div>
     </div>
     <div class="card pendente">
-      <h3>A Pagar / Receber</h3>
-      <div class="value" id="totalPendente">R$ 0,00</div>
+      <div class="card-header">
+        <h3>Fatura Cartão</h3>
+        <div class="card-icon"><i class="ph ph-credit-card"></i></div>
+      </div>
+      <div class="value" id="totalCartao">R$ 0,00</div>
     </div>
   </div>
 
-  <div class="main-content">
-    <!-- Formulário -->
+  <!-- MIDDLE GRID -->
+  <div class="middle-grid">
+    <!-- FORM -->
     <div class="form-container">
-      <h3 class="form-title" id="formTitle">Nova Transação</h3>
+      <h3 class="form-title" id="formTitle"><i class="ph ph-plus-circle"></i> Novo Lançamento</h3>
       <form id="form">
         <input type="hidden" id="editId">
-        <input type="text" id="descricao" placeholder="Descrição (ex: Mercado, Salário)" required>
         
-        <div class="input-group">
-          <input type="number" id="valor" placeholder="Valor (R$)" step="0.01" min="0" required>
-          <select id="tipo" required>
-            <option value="despesa">Despesa</option>
-            <option value="receita">Renda</option>
-          </select>
+        <div class="form-group full">
+          <label>Descrição</label>
+          <input type="text" id="descricao" placeholder="Ex: Compras do mês, Salário..." required>
         </div>
 
-        <div class="input-group">
-          <select id="conta" required>
-            <option value="" disabled selected>Conta / Cartão</option>
-            <optgroup label="Contas Bancárias">
-              <option value="Itaú">Itaú</option>
-              <option value="Nubank">Nubank</option>
-              <option value="Banco do Brasil">Banco do Brasil</option>
-              <option value="Santander">Santander</option>
-              <option value="Caixa">Caixa</option>
-              <option value="Dinheiro">Dinheiro Físico</option>
-            </optgroup>
-            <optgroup label="Cartões de Crédito">
-              <option value="Cartão Riachuelo">Cartão Riachuelo</option>
-              <option value="Cartão Nubank">Cartão Nubank</option>
-              <option value="Cartão Bradescard">Cartão Bradescard</option>
-              <option value="Cartão Itaú">Cartão Itaú</option>
-              <option value="Cartão Açadão">Cartão Açadão</option>
-            </optgroup>
-            <option value="Outro">Outro</option>
-          </select>
-
-          <select id="status" required>
-            <option value="Pago" selected>Pago / Recebido</option>
-            <option value="Pendente">Pendente / Não Pago</option>
-          </select>
+        <div class="form-group">
+          <label>Valor (R$)</label>
+          <input type="number" id="valor" placeholder="0,00" step="0.01" min="0" required>
         </div>
 
-        <div class="input-group">
-          <select id="categoria" required>
-            <option value="" disabled selected>Categoria</option>
-            <option value="Alimentação">🍔 Alimentação</option>
-            <option value="Transporte">🚗 Transporte</option>
-            <option value="Moradia">🏠 Moradia</option>
-            <option value="Lazer">🎮 Lazer</option>
-            <option value="Saúde">🏥 Saúde</option>
-            <option value="Salário">💵 Salário / Renda</option>
-            <option value="Fatura">💳 Fatura de Cartão</option>
-            <option value="Outros">📦 Outros</option>
-          </select>
+        <div class="form-group">
+          <label>Data</label>
           <input type="date" id="data" required>
         </div>
 
-        <button type="submit" class="btn-add" id="btnSubmit">Adicionar Transação</button>
-        <button type="button" id="btnCancel" style="display:none; background:#ef4444; color:white; padding:12px; border-radius:8px; border:none; cursor:pointer;" onclick="cancelarEdicao()">Cancelar Edição</button>
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="tipo" onchange="atualizarCategorias()" required>
+            <option value="despesa">Despesa</option>
+            <option value="receita">Receita</option>
+            <option value="operacao">Operação (Saque/Pgto)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Conta / Cartão</label>
+          <select id="conta" required>
+            <option value="" disabled selected>Selecione...</option>
+            <option value="C.Corrente">Conta Corrente</option>
+            <option value="Dinheiro">Dinheiro Físico</option>
+            <option value="V.A.">Vale Alimentação (VA)</option>
+            <option value="C.Credito">Cartão de Crédito</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Categoria</label>
+          <select id="categoria" onchange="atualizarSubcategorias()" required>
+            <option value="" disabled selected>Selecione...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Sub-categoria</label>
+          <select id="subcategoria" required>
+            <option value="" disabled selected>Selecione a categoria primeiro...</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-add" id="btnSubmit"><i class="ph ph-check-circle"></i> Salvar Lançamento</button>
+        <button type="button" class="btn-cancel" id="btnCancel" onclick="cancelarEdicao()">Cancelar Edição</button>
       </form>
     </div>
 
-    <!-- Gráfico -->
-    <div class="chart-container">
-      <h3>Despesas por Categoria</h3>
-      <div class="chart-wrapper">
-        <canvas id="graficoDespesas"></canvas>
+    <!-- SIDE WIDGETS -->
+    <div class="side-widgets">
+      <div class="widget">
+        <h3><i class="ph ph-chart-donut"></i> Despesas por Categoria</h3>
+        <div class="chart-wrapper">
+          <canvas id="graficoDespesas"></canvas>
+        </div>
+      </div>
+
+      <div class="widget">
+        <h3><i class="ph ph-wallet"></i> Saldo por Conta</h3>
+        <div id="saldosContainer">
+          <!-- Preenchido via JS -->
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Tabela -->
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Descrição</th>
-          <th>Categoria</th>
-          <th>Conta / Cartão</th>
-          <th>Status</th>
-          <th>Valor</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="lista"></tbody>
-    </table>
+  <!-- TABLE -->
+  <div class="table-section">
+    <div class="table-header">
+      <div class="tabs">
+        <div class="tab active" onclick="mudarAba('todos', this)">Todos</div>
+        <div class="tab" onclick="mudarAba('receita', this)">Receitas</div>
+        <div class="tab" onclick="mudarAba('despesa', this)">Despesas</div>
+      </div>
+      <div class="table-actions">
+        <div class="search-wrapper">
+          <i class="ph ph-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="search-box" placeholder="Pesquisar..." oninput="render()">
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Categoria / Sub</th>
+            <th>Conta</th>
+            <th>Valor</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="lista"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -241,10 +386,33 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // BASE DE DADOS DE CATEGORIAS (Baseada na sua planilha)
+  const dbCategorias = {
+    receita: {
+      "Receitas": ["Salário", "Vale Alimentação", "13º Salário", "Outras Receitas"]
+    },
+    despesa: {
+      "Alimentação": ["Supermercado", "Restaurante"],
+      "Moradia": ["Aluguel", "Financiamento", "Luz", "Água", "Internet", "Telefone", "Condomínio", "Faxina", "Gás", "IPTU/Taxas", "Decoração", "Móveis", "Manutenção", "TV", "Eletrodomésticos"],
+      "Educação": ["Matrícula/Mensalidade", "Material Escolar", "Transporte escolar", "Outros"],
+      "Pet/Estimação": ["Ração", "Banho/Tosa", "Veterinário", "Outros"],
+      "Saúde": ["Plano de saúde", "Remédios", "Dentista", "Médicos", "Academia", "Outros"],
+      "Transporte": ["Ônibus/Metrô", "Taxi", "Combustível", "Bicicleta", "Estacionamento", "Seguro", "Manutenção", "Licenciamento", "Pedágio", "IPVA", "Financiamento"],
+      "Pessoal": ["Vestuário", "Cabeleireiro/Manicure", "Presentes", "Outros"],
+      "Lazer": ["Cinema/Teatro/Shows", "Livros/Revistas", "Clube/Parques", "Viagens", "Restaurantes/Bares", "Outros"],
+      "Financeiro": ["Empréstimos", "Seguros", "Previdência privada", "Juros Cheque Especial", "Tarifas bancárias", "Imposto de Renda"],
+      "Bebê": ["Consultas/Exames", "Fraldas", "Roupas", "Acessórios", "Livros", "Outros"]
+    },
+    operacao: {
+      "Operações": ["Saque em Dinheiro", "Pgto. Fatura Cartão", "Transferência"]
+    }
+  };
+
   let usuarioId = null;
   let transacoes = [];
   let meuGrafico = null;
   let unsubscribeSnapshot = null;
+  let abaAtual = 'todos';
 
   const telaLogin = document.getElementById('telaLogin');
   const siteContainer = document.getElementById('siteContainer');
@@ -256,24 +424,69 @@
   const btnCancel = document.getElementById('btnCancel');
   const inputEditId = document.getElementById('editId');
   const filtroMes = document.getElementById('filtroMes');
+  const selectCategoria = document.getElementById('categoria');
+  const selectSubcategoria = document.getElementById('subcategoria');
 
   function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
 
+  function showToast(mensagem, tipo = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+    toast.innerHTML = `<i class="ph-fill ${tipo === 'success' ? 'ph-check-circle' : 'ph-warning-circle'}" style="font-size: 1.5rem; color: ${tipo === 'success' ? 'var(--success)' : 'var(--danger)'}"></i> ${mensagem}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = 'fadeOut 0.3s ease-in forwards';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  // --- LÓGICA DE CATEGORIAS ---
+  window.atualizarCategorias = function() {
+    const tipo = document.getElementById('tipo').value;
+    selectCategoria.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+    selectSubcategoria.innerHTML = '<option value="" disabled selected>Selecione a categoria primeiro...</option>';
+    
+    if (dbCategorias[tipo]) {
+      for (const cat in dbCategorias[tipo]) {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        selectCategoria.appendChild(opt);
+      }
+    }
+  }
+
+  window.atualizarSubcategorias = function() {
+    const tipo = document.getElementById('tipo').value;
+    const categoria = selectCategoria.value;
+    selectSubcategoria.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+    
+    if (tipo && categoria && dbCategorias[tipo][categoria]) {
+      dbCategorias[tipo][categoria].forEach(sub => {
+        const opt = document.createElement('option');
+        opt.value = sub;
+        opt.textContent = sub;
+        selectSubcategoria.appendChild(opt);
+      });
+    }
+  }
+
   // --- AUTENTICAÇÃO ---
   window.fazerLogin = async function() {
-    const email = document.getElementById('email').value;
+    const email = document.getElementById('email').value.trim();
     const senha = document.getElementById('senha').value;
-    if(!email || !senha) return alert("Preencha e-mail e senha!");
+    if(!email || !senha) return showToast("Preencha e-mail e senha!", "error");
     try { await signInWithEmailAndPassword(auth, email, senha); } 
-    catch (error) { alert("Erro ao entrar: " + error.message); }
+    catch (error) { showToast("Erro ao entrar. Verifique seus dados.", "error"); }
   }
 
   window.fazerCadastro = async function() {
-    const email = document.getElementById('email').value;
+    const email = document.getElementById('email').value.trim();
     const senha = document.getElementById('senha').value;
-    if(!email || !senha) return alert("Preencha e-mail e senha!");
-    try { await createUserWithEmailAndPassword(auth, email, senha); alert("Conta criada!"); } 
-    catch (error) { alert("Erro ao criar conta: " + error.message); }
+    if(!email || !senha) return showToast("Preencha e-mail e senha!", "error");
+    try { await createUserWithEmailAndPassword(auth, email, senha); } 
+    catch (error) { showToast("Erro ao criar conta: E-mail em uso ou senha fraca.", "error"); }
   }
 
   window.fazerLogout = function() {
@@ -286,13 +499,12 @@
       telaLogin.style.display = 'none';
       siteContainer.style.display = 'flex';
       emailUsuario.textContent = user.email;
+      document.getElementById('avatarLetra').textContent = user.email.charAt(0).toUpperCase();
       
-      // Define o mês atual no filtro
       const hoje = new Date();
-      const mesAtual = hoje.toISOString().slice(0, 7); // formato YYYY-MM
-      filtroMes.value = mesAtual;
-
+      filtroMes.value = hoje.toISOString().slice(0, 7);
       carregarDados();
+      atualizarCategorias(); // Inicializa as categorias
     } else {
       telaLogin.style.display = 'flex';
       siteContainer.style.display = 'none';
@@ -311,49 +523,73 @@
         transacoes.push({ id: doc.id, ...doc.data() });
       });
       render();
-    }, (error) => alert("Erro ao ler dados."));
+    }, (error) => showToast("Erro ao ler dados.", "error"));
   }
 
-  // --- RENDERIZAÇÃO ---
+  window.mudarAba = function(tipo, element) {
+    abaAtual = tipo;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    element.classList.add('active');
+    render();
+  }
+
   function render() {
     lista.innerHTML = '';
-    
-    // Filtro de Mês
     const mesSelecionado = filtroMes.value; 
+    const termoBusca = document.getElementById('searchInput').value.toLowerCase();
     
-    // Filtra as transações pelo mês selecionado (se houver)
     const transacoesFiltradas = transacoes.filter(t => {
-      if (!mesSelecionado) return true;
-      return t.data.startsWith(mesSelecionado);
+      const matchMes = !mesSelecionado || t.data.startsWith(mesSelecionado);
+      const matchBusca = t.descricao.toLowerCase().includes(termoBusca) || (t.categoria && t.categoria.toLowerCase().includes(termoBusca));
+      const matchTipo = abaAtual === 'todos' || t.tipo === abaAtual;
+      return matchMes && matchBusca && matchTipo;
     });
 
     transacoesFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-    let receita = 0, despesa = 0, pendente = 0;
+    let receita = 0, despesa = 0, faturaCartao = 0;
+    let saldos = { 'C.Corrente': 0, 'Dinheiro': 0, 'V.A.': 0, 'C.Credito': 0 };
 
     transacoesFiltradas.forEach((t) => {
-      // Calcula os totais
-      if (t.status === 'Pendente') {
-        pendente += (t.tipo === 'receita' ? t.valor : -t.valor);
-      } else {
-        if (t.tipo === 'receita') receita += t.valor;
-        else despesa += t.valor;
+      // Cálculo dos Cards do topo
+      if (t.tipo === 'receita') receita += t.valor;
+      if (t.tipo === 'despesa') despesa += t.valor;
+      if (t.tipo === 'despesa' && t.conta === 'C.Credito') faturaCartao += t.valor;
+
+      // Cálculo de Saldo por Conta
+      if (t.conta) {
+        if (t.tipo === 'receita') saldos[t.conta] = (saldos[t.conta] || 0) + t.valor;
+        else if (t.tipo === 'despesa') saldos[t.conta] = (saldos[t.conta] || 0) - t.valor;
+        else if (t.tipo === 'operacao') {
+          // Lógica simplificada de operações
+          if (t.subcategoria === 'Saque em Dinheiro') {
+             saldos['C.Corrente'] -= t.valor;
+             saldos['Dinheiro'] += t.valor;
+          }
+          if (t.subcategoria === 'Pgto. Fatura Cartão') {
+             saldos['C.Corrente'] -= t.valor;
+             saldos['C.Credito'] += t.valor; // Abate a fatura
+          }
+        }
       }
 
-      // Renderiza a linha na tabela
+      const badgeClass = t.tipo === 'receita' ? 'receita' : (t.tipo === 'despesa' ? 'despesa' : 'operacao');
+      
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${new Date(t.data + 'T00:00').toLocaleDateString('pt-BR')}</td>
-        <td>${t.descricao}</td>
-        <td>${t.categoria || 'Outros'}</td>
-        <td>${t.conta || 'Não informada'}</td>
-        <td><span class="badge ${t.status === 'Pendente' ? 'pendente' : 'pago'}">${t.status || 'Pago'}</span></td>
-        <td style="color: ${t.tipo === 'receita' ? '#10b981' : '#ef4444'}; font-weight: bold;">
-          ${t.tipo === 'receita' ? '+' : '-'} ${formatarMoeda(t.valor)}
+        <td style="font-weight: 500;">${t.descricao}</td>
+        <td>
+          <div style="font-size: 0.85rem;">${t.categoria}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">${t.subcategoria}</div>
+        </td>
+        <td><span style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem;">${t.conta}</span></td>
+        <td style="color: ${t.tipo === 'receita' ? 'var(--success)' : (t.tipo === 'despesa' ? 'var(--danger)' : 'var(--primary)')}; font-weight: 700;">
+          ${t.tipo === 'receita' ? '+' : (t.tipo === 'despesa' ? '-' : '')} ${formatarMoeda(t.valor)}
         </td>
         <td class="actions">
-          <button class="btn-action" onclick="editar('${t.id}')" title="Editar">✏️</button>
-          <button class="btn-action" onclick="remover('${t.id}')" title="Excluir">🗑️</button>
+          <button class="btn-action" onclick="editar('${t.id}')" title="Editar"><i class="ph ph-pencil-simple"></i></button>
+          <button class="btn-action delete" onclick="remover('${t.id}')" title="Excluir"><i class="ph ph-trash"></i></button>
         </td>
       `;
       lista.appendChild(tr);
@@ -361,10 +597,11 @@
 
     document.getElementById('totalReceita').textContent = formatarMoeda(receita);
     document.getElementById('totalDespesa').textContent = formatarMoeda(despesa);
-    document.getElementById('totalSaldo').textContent = formatarMoeda(receita - despesa);
-    document.getElementById('totalPendente').textContent = formatarMoeda(pendente);
+    document.getElementById('totalSaldo').textContent = formatarMoeda(saldos['C.Corrente'] + saldos['Dinheiro'] + saldos['V.A.']);
+    document.getElementById('totalCartao').textContent = formatarMoeda(faturaCartao);
 
     atualizarGrafico(transacoesFiltradas);
+    atualizarWidgetSaldos(saldos);
   }
 
   function atualizarGrafico(transacoesFiltradas) {
@@ -380,7 +617,6 @@
     const data = Object.values(categorias);
 
     if (meuGrafico) meuGrafico.destroy();
-
     if (labels.length === 0) { labels.push('Sem despesas'); data.push(1); }
 
     const ctx = document.getElementById('graficoDespesas').getContext('2d');
@@ -391,21 +627,45 @@
         datasets: [{
           data: data,
           backgroundColor: ['#ef4444', '#f59e0b', '#38bdf8', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b'],
-          borderWidth: 0
+          borderWidth: 0,
+          hoverOffset: 5
         }]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 10, boxWidth: 12 } } },
-        cutout: '70%'
+        plugins: { 
+          legend: { position: 'bottom', labels: { color: '#94a3b8', padding: 15, font: { family: 'Outfit', size: 10 }, usePointStyle: true, boxWidth: 6 } } 
+        },
+        cutout: '75%'
       }
     });
   }
 
-  // --- AÇÕES CRUD ---
+  function atualizarWidgetSaldos(saldos) {
+    const container = document.getElementById('saldosContainer');
+    container.innerHTML = '';
+    
+    const icones = {
+      'C.Corrente': 'ph-bank',
+      'Dinheiro': 'ph-money',
+      'V.A.': 'ph-shopping-cart',
+      'C.Credito': 'ph-credit-card'
+    };
+
+    for (const [conta, saldo] of Object.entries(saldos)) {
+      container.innerHTML += `
+        <div class="account-item">
+          <div class="account-name"><i class="ph ${icones[conta]}"></i> ${conta}</div>
+          <div class="account-value" style="color: ${saldo < 0 ? 'var(--danger)' : 'var(--text-main)'}">${formatarMoeda(saldo)}</div>
+        </div>
+      `;
+    }
+  }
+
   window.remover = async function(id) {
-    if (confirm('Excluir esta transação?')) {
+    if (confirm('Tem certeza que deseja excluir este lançamento?')) {
       await deleteDoc(doc(db, "usuarios", usuarioId, "transacoes", id));
+      showToast("Lançamento excluído.");
     }
   }
 
@@ -416,15 +676,17 @@
     document.getElementById('descricao').value = t.descricao;
     document.getElementById('valor').value = t.valor;
     document.getElementById('tipo').value = t.tipo;
-    document.getElementById('conta').value = t.conta || 'Outro';
-    document.getElementById('status').value = t.status || 'Pago';
-    document.getElementById('categoria').value = t.categoria || 'Outros';
+    atualizarCategorias(); // Atualiza o dropdown antes de setar o valor
+    document.getElementById('conta').value = t.conta;
+    document.getElementById('categoria').value = t.categoria;
+    atualizarSubcategorias(); // Atualiza o dropdown antes de setar o valor
+    document.getElementById('subcategoria').value = t.subcategoria;
     document.getElementById('data').value = t.data;
     inputEditId.value = t.id;
 
-    formTitle.textContent = '✏️ Editando Transação';
-    btnSubmit.textContent = 'Salvar Alterações';
-    btnSubmit.style.background = '#f59e0b';
+    formTitle.innerHTML = '<i class="ph ph-pencil-simple"></i> Editando Lançamento';
+    btnSubmit.innerHTML = '<i class="ph ph-check-circle"></i> Salvar Alterações';
+    btnSubmit.style.background = 'linear-gradient(135deg, #f59e0b, #ea580c)';
     btnCancel.style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -432,13 +694,12 @@
   window.cancelarEdicao = function() {
     form.reset();
     inputEditId.value = '';
-    formTitle.textContent = 'Nova Transação';
-    btnSubmit.textContent = 'Adicionar Transação';
-    btnSubmit.style.background = '#38bdf8';
+    formTitle.innerHTML = '<i class="ph ph-plus-circle"></i> Novo Lançamento';
+    btnSubmit.innerHTML = '<i class="ph ph-check-circle"></i> Salvar Lançamento';
+    btnSubmit.style.background = 'linear-gradient(135deg, var(--primary), #3b82f6)';
     btnCancel.style.display = 'none';
-    
-    // Reseta a data para hoje
     document.getElementById('data').value = new Date().toISOString().split('T')[0];
+    atualizarCategorias();
   }
 
   form.addEventListener('submit', async (e) => {
@@ -451,22 +712,25 @@
       valor: parseFloat(document.getElementById('valor').value),
       tipo: document.getElementById('tipo').value,
       conta: document.getElementById('conta').value,
-      status: document.getElementById('status').value,
       categoria: document.getElementById('categoria').value,
+      subcategoria: document.getElementById('subcategoria').value,
       data: document.getElementById('data').value
     };
 
     try {
       if (inputEditId.value) {
         await updateDoc(doc(db, "usuarios", usuarioId, "transacoes", inputEditId.value), dados);
+        showToast("Lançamento atualizado!");
         cancelarEdicao();
       } else {
         await addDoc(collection(db, "usuarios", usuarioId, "transacoes"), dados);
+        showToast("Novo lançamento salvo!");
         form.reset();
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
+        atualizarCategorias();
       }
     } catch (error) {
-      alert("Erro ao salvar: " + error.message);
+      showToast("Erro ao salvar: " + error.message, "error");
     } finally {
       btnSubmit.disabled = false;
     }
