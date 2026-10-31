@@ -148,13 +148,11 @@
 
 </div>
 
-<!-- Importando os módulos do Firebase via CDN -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-  // Suas chaves do Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyC_1Ly94lTcBA2y2m3Gx6wOimBKYoOTgdY",
     authDomain: "financas-adeilton.firebaseapp.com",
@@ -165,18 +163,15 @@
     measurementId: "G-3KWKWZQGDL"
   };
 
-  // Inicializa o Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // Variáveis Globais
   let usuarioId = null;
   let transacoes = [];
   let meuGrafico = null;
   let unsubscribeSnapshot = null;
 
-  // Elementos do DOM
   const form = document.getElementById('form');
   const lista = document.getElementById('lista');
   const formTitle = document.getElementById('formTitle');
@@ -185,43 +180,47 @@
   const inputEditId = document.getElementById('editId');
   const statusNuvem = document.getElementById('statusNuvem');
 
-  // Funções Utilitárias
   function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
 
-  // --- AUTENTICAÇÃO E CONEXÃO ---
-  signInAnonymously(auth).then(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        usuarioId = user.uid;
-        statusNuvem.textContent = "☁️ Dados Sincronizados";
-        statusNuvem.style.background = "#10b98120";
-        statusNuvem.style.color = "#10b981";
-        carregarDados();
-      }
-    });
-  }).catch((error) => {
-    console.error("Erro na autenticação:", error);
-    statusNuvem.textContent = "❌ Erro de Conexão";
-    statusNuvem.style.background = "#ef444420";
-    statusNuvem.style.color = "#ef4444";
+  // Lógica de Autenticação Melhorada
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      usuarioId = user.uid;
+      statusNuvem.textContent = "☁️ Dados Sincronizados";
+      statusNuvem.style.background = "#10b98120";
+      statusNuvem.style.color = "#10b981";
+      carregarDados();
+    } else {
+      signInAnonymously(auth).catch((error) => {
+        console.error("Erro na autenticação:", error);
+        statusNuvem.textContent = "❌ Erro de Conexão";
+        statusNuvem.style.background = "#ef444420";
+        statusNuvem.style.color = "#ef4444";
+      });
+    }
   });
 
-  // --- CARREGAR DADOS EM TEMPO REAL ---
   function carregarDados() {
-    // Cria uma referência para a coleção de transações DESTE usuário específico
     const transacoesRef = collection(db, "usuarios", usuarioId, "transacoes");
     
-    // onSnapshot escuta mudanças em tempo real
-    unsubscribeSnapshot = onSnapshot(transacoesRef, (snapshot) => {
-      transacoes = [];
-      snapshot.forEach((doc) => {
-        transacoes.push({ id: doc.id, ...doc.data() });
-      });
-      render();
-    });
+    // Se já tiver um listener ativo, cancela para não duplicar
+    if (unsubscribeSnapshot) unsubscribeSnapshot();
+
+    unsubscribeSnapshot = onSnapshot(transacoesRef, 
+      (snapshot) => {
+        transacoes = [];
+        snapshot.forEach((doc) => {
+          transacoes.push({ id: doc.id, ...doc.data() });
+        });
+        render();
+      },
+      (error) => {
+        console.error("Erro ao buscar dados:", error);
+        alert("Erro ao puxar os dados. Verifique as regras de segurança do Firestore.");
+      }
+    );
   }
 
-  // --- RENDERIZAÇÃO ---
   function render() {
     lista.innerHTML = '';
     transacoes.sort((a, b) => new Date(b.data) - new Date(a.data));
@@ -296,7 +295,6 @@
     });
   }
 
-  // --- AÇÕES (CRIAR, EDITAR, EXCLUIR) ---
   window.remover = async function(id) {
     if (confirm('Tem certeza que deseja excluir esta transação da nuvem?')) {
       try {
@@ -336,7 +334,6 @@
     document.getElementById('data').value = new Date().toISOString().split('T')[0];
   }
 
-  // Submissão do Formulário
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -345,7 +342,7 @@
       return;
     }
 
-    btnSubmit.disabled = true; // Evita cliques duplos
+    btnSubmit.disabled = true;
 
     const dados = {
       descricao: document.getElementById('descricao').value,
@@ -357,12 +354,10 @@
 
     try {
       if (inputEditId.value) {
-        // Atualizar no Firestore
         const docRef = doc(db, "usuarios", usuarioId, "transacoes", inputEditId.value);
         await updateDoc(docRef, dados);
         cancelarEdicao();
       } else {
-        // Adicionar no Firestore
         await addDoc(collection(db, "usuarios", usuarioId, "transacoes"), dados);
         form.reset();
         document.getElementById('data').value = new Date().toISOString().split('T')[0];
@@ -374,7 +369,6 @@
     }
   });
 
-  // Inicialização básica
   document.getElementById('data').value = new Date().toISOString().split('T')[0];
 </script>
 </body>
