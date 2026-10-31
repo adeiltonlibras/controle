@@ -8,6 +8,8 @@
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  html { scroll-behavior: smooth; } /* Rolagem suave */
+  
   :root {
     --bg-base: #0f172a;
     --bg-surface: rgba(30, 41, 59, 0.7);
@@ -50,9 +52,13 @@
   .sidebar { width: 260px; background: var(--bg-surface); backdrop-filter: blur(20px); border-right: 1px solid var(--border); padding: 30px 20px; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;}
   .logo { font-size: 1.5rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; margin-bottom: 40px; padding-left: 10px;}
   .logo i { color: var(--primary); font-size: 2rem;}
+  
+  /* BOTÕES DO MENU LATERAL */
   .nav-item { display: flex; align-items: center; gap: 15px; padding: 14px 20px; color: var(--text-muted); text-decoration: none; border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: 0.3s; font-weight: 500;}
-  .nav-item:hover, .nav-item.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
+  .nav-item:hover { background: rgba(56, 189, 248, 0.05); color: var(--text-main); }
+  .nav-item.active { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
   .nav-item i { font-size: 1.3rem; }
+  
   .user-profile { margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 15px; background: rgba(15, 23, 42, 0.5); border-radius: 12px; border: 1px solid var(--border);}
   .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;}
   .user-info { flex: 1; overflow: hidden;}
@@ -102,6 +108,8 @@
   .form-group { display: flex; flex-direction: column; gap: 8px;}
   .form-group.full { grid-column: span 2; }
   label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500;}
+  label span { font-size: 0.75rem; font-weight: 400; opacity: 0.7; } /* Aviso de opcional */
+  
   input, select { padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.6); color: var(--text-main); font-size: 0.95rem; transition: 0.2s; width: 100%;}
   input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1); }
   
@@ -142,11 +150,6 @@
   tr:last-child td { border-bottom: none; }
   tr { transition: background 0.2s;}
   tr:hover { background: rgba(255,255,255,0.02); }
-  
-  .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;}
-  .badge.receita { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-  .badge.despesa { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-  .badge.operacao { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
   
   .actions { display: flex; gap: 8px; }
   .btn-action { background: rgba(255,255,255,0.05); border: 1px solid transparent; cursor: pointer; font-size: 1.1rem; padding: 8px; border-radius: 8px; transition: 0.2s; color: var(--text-muted);}
@@ -195,9 +198,11 @@
 <!-- SIDEBAR -->
 <div class="sidebar">
   <div class="logo"><i class="ph-fill ph-wallet"></i> FinanPro</div>
-  <a class="nav-item active"><i class="ph ph-squares-four"></i> Dashboard</a>
-  <a class="nav-item"><i class="ph ph-receipt"></i> Extrato</a>
-  <a class="nav-item"><i class="ph ph-credit-card"></i> Cartões</a>
+  
+  <!-- BOTÕES FUNCIONAIS -->
+  <a class="nav-item active" onclick="navegar('dashboard', this)"><i class="ph ph-squares-four"></i> Dashboard</a>
+  <a class="nav-item" onclick="navegar('secao-extrato', this)"><i class="ph ph-receipt"></i> Extrato</a>
+  <a class="nav-item" onclick="navegar('secao-cartoes', this)"><i class="ph ph-credit-card"></i> Cartões</a>
   
   <div class="user-profile">
     <div class="user-avatar" id="avatarLetra">A</div>
@@ -211,7 +216,7 @@
 
 <!-- MAIN CONTENT -->
 <div id="siteContainer">
-  <header>
+  <header id="dashboard">
     <div class="page-title">
       <h1>Fluxo de Caixa</h1>
       <p>Gerencie suas contas, cartões e operações</p>
@@ -222,7 +227,7 @@
   </header>
 
   <!-- CARDS -->
-  <div class="cards">
+  <div class="cards" id="secao-cartoes">
     <div class="card receita">
       <div class="card-header">
         <h3>Receitas do Mês</h3>
@@ -262,8 +267,9 @@
         <input type="hidden" id="editId">
         
         <div class="form-group full">
-          <label>Descrição</label>
-          <input type="text" id="descricao" placeholder="Ex: Compras do mês, Salário..." required>
+          <label>Descrição <span>(Opcional)</span></label>
+          <!-- CAMPO NÃO É MAIS OBRIGATÓRIO -->
+          <input type="text" id="descricao" placeholder="Ex: Compras do mês, Salário... (Pode deixar em branco)">
         </div>
 
         <div class="form-group">
@@ -334,7 +340,7 @@
   </div>
 
   <!-- TABLE -->
-  <div class="table-section">
+  <div class="table-section" id="secao-extrato">
     <div class="table-header">
       <div class="tabs">
         <div class="tab active" onclick="mudarAba('todos', this)">Todos</div>
@@ -386,11 +392,8 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // BASE DE DADOS DE CATEGORIAS (Baseada na sua planilha)
   const dbCategorias = {
-    receita: {
-      "Receitas": ["Salário", "Vale Alimentação", "13º Salário", "Outras Receitas"]
-    },
+    receita: { "Receitas": ["Salário", "Vale Alimentação", "13º Salário", "Outras Receitas"] },
     despesa: {
       "Alimentação": ["Supermercado", "Restaurante"],
       "Moradia": ["Aluguel", "Financiamento", "Luz", "Água", "Internet", "Telefone", "Condomínio", "Faxina", "Gás", "IPTU/Taxas", "Decoração", "Móveis", "Manutenção", "TV", "Eletrodomésticos"],
@@ -403,9 +406,7 @@
       "Financeiro": ["Empréstimos", "Seguros", "Previdência privada", "Juros Cheque Especial", "Tarifas bancárias", "Imposto de Renda"],
       "Bebê": ["Consultas/Exames", "Fraldas", "Roupas", "Acessórios", "Livros", "Outros"]
     },
-    operacao: {
-      "Operações": ["Saque em Dinheiro", "Pgto. Fatura Cartão", "Transferência"]
-    }
+    operacao: { "Operações": ["Saque em Dinheiro", "Pgto. Fatura Cartão", "Transferência"] }
   };
 
   let usuarioId = null;
@@ -439,6 +440,21 @@
       toast.style.animation = 'fadeOut 0.3s ease-in forwards';
       setTimeout(() => toast.remove(), 300);
     }, 3000);
+  }
+
+  // --- NAVEGAÇÃO MENU LATERAL ---
+  window.navegar = function(destino, element) {
+    // Remove 'active' de todos
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+    // Adiciona no clicado
+    element.classList.add('active');
+
+    // Rola a tela suavemente
+    if (destino === 'dashboard') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      document.getElementById(destino).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
   // --- LÓGICA DE CATEGORIAS ---
@@ -504,7 +520,7 @@
       const hoje = new Date();
       filtroMes.value = hoje.toISOString().slice(0, 7);
       carregarDados();
-      atualizarCategorias(); // Inicializa as categorias
+      atualizarCategorias();
     } else {
       telaLogin.style.display = 'flex';
       siteContainer.style.display = 'none';
@@ -540,7 +556,9 @@
     
     const transacoesFiltradas = transacoes.filter(t => {
       const matchMes = !mesSelecionado || t.data.startsWith(mesSelecionado);
-      const matchBusca = t.descricao.toLowerCase().includes(termoBusca) || (t.categoria && t.categoria.toLowerCase().includes(termoBusca));
+      // Busca na descrição ou na subcategoria/categoria
+      const buscaTexto = `${t.descricao} ${t.categoria} ${t.subcategoria}`.toLowerCase();
+      const matchBusca = buscaTexto.includes(termoBusca);
       const matchTipo = abaAtual === 'todos' || t.tipo === abaAtual;
       return matchMes && matchBusca && matchTipo;
     });
@@ -551,34 +569,32 @@
     let saldos = { 'C.Corrente': 0, 'Dinheiro': 0, 'V.A.': 0, 'C.Credito': 0 };
 
     transacoesFiltradas.forEach((t) => {
-      // Cálculo dos Cards do topo
       if (t.tipo === 'receita') receita += t.valor;
       if (t.tipo === 'despesa') despesa += t.valor;
       if (t.tipo === 'despesa' && t.conta === 'C.Credito') faturaCartao += t.valor;
 
-      // Cálculo de Saldo por Conta
       if (t.conta) {
         if (t.tipo === 'receita') saldos[t.conta] = (saldos[t.conta] || 0) + t.valor;
         else if (t.tipo === 'despesa') saldos[t.conta] = (saldos[t.conta] || 0) - t.valor;
         else if (t.tipo === 'operacao') {
-          // Lógica simplificada de operações
           if (t.subcategoria === 'Saque em Dinheiro') {
              saldos['C.Corrente'] -= t.valor;
              saldos['Dinheiro'] += t.valor;
           }
           if (t.subcategoria === 'Pgto. Fatura Cartão') {
              saldos['C.Corrente'] -= t.valor;
-             saldos['C.Credito'] += t.valor; // Abate a fatura
+             saldos['C.Credito'] += t.valor;
           }
         }
       }
 
-      const badgeClass = t.tipo === 'receita' ? 'receita' : (t.tipo === 'despesa' ? 'despesa' : 'operacao');
+      // Se a descrição estiver vazia, usa a subcategoria
+      const textoExibicao = t.descricao && t.descricao.trim() !== "" ? t.descricao : t.subcategoria;
       
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${new Date(t.data + 'T00:00').toLocaleDateString('pt-BR')}</td>
-        <td style="font-weight: 500;">${t.descricao}</td>
+        <td style="font-weight: 500;">${textoExibicao}</td>
         <td>
           <div style="font-size: 0.85rem;">${t.categoria}</div>
           <div style="font-size: 0.75rem; color: var(--text-muted);">${t.subcategoria}</div>
@@ -673,13 +689,13 @@
     const t = transacoes.find(t => t.id === id);
     if (!t) return;
 
-    document.getElementById('descricao').value = t.descricao;
+    document.getElementById('descricao').value = t.descricao || '';
     document.getElementById('valor').value = t.valor;
     document.getElementById('tipo').value = t.tipo;
-    atualizarCategorias(); // Atualiza o dropdown antes de setar o valor
+    atualizarCategorias(); 
     document.getElementById('conta').value = t.conta;
     document.getElementById('categoria').value = t.categoria;
-    atualizarSubcategorias(); // Atualiza o dropdown antes de setar o valor
+    atualizarSubcategorias(); 
     document.getElementById('subcategoria').value = t.subcategoria;
     document.getElementById('data').value = t.data;
     inputEditId.value = t.id;
@@ -688,6 +704,8 @@
     btnSubmit.innerHTML = '<i class="ph ph-check-circle"></i> Salvar Alterações';
     btnSubmit.style.background = 'linear-gradient(135deg, #f59e0b, #ea580c)';
     btnCancel.style.display = 'block';
+    
+    // Rola até o formulário para editar
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -707,13 +725,18 @@
     if (!usuarioId) return;
     btnSubmit.disabled = true;
 
+    // Pega a descrição digitada (pode estar vazia)
+    const descricaoDigitada = document.getElementById('descricao').value.trim();
+    const subcategoriaEscolhida = document.getElementById('subcategoria').value;
+
     const dados = {
-      descricao: document.getElementById('descricao').value,
+      // SE A DESCRIÇÃO ESTIVER VAZIA, USA A SUBCATEGORIA COMO TÍTULO
+      descricao: descricaoDigitada !== "" ? descricaoDigitada : subcategoriaEscolhida,
       valor: parseFloat(document.getElementById('valor').value),
       tipo: document.getElementById('tipo').value,
       conta: document.getElementById('conta').value,
       categoria: document.getElementById('categoria').value,
-      subcategoria: document.getElementById('subcategoria').value,
+      subcategoria: subcategoriaEscolhida,
       data: document.getElementById('data').value
     };
 
